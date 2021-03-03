@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BookController extends Controller
 {
@@ -16,10 +17,10 @@ class BookController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api')->except([
-            'index',
-            'show'
-        ]);
+//        $this->middleware('auth:api')->except([
+//            'index',
+//            'show'
+//        ]);
     }
 
     /**
@@ -129,12 +130,14 @@ class BookController extends Controller
             ]);
         }
 
-        $user_id = Auth::user()->getAuthIdentifier();
-        $book->users()->attach($user_id, [
-            'action' => config('enums.book_action.CHECKOUT')
-        ]);
-        $book->status = Book::STATUS['CHECKED_OUT'];
-        $book->update();
+        DB::transaction(function () use ($book) {
+            $user_id = 1;//Auth::user()->getAuthIdentifier();
+            $book->users()->attach($user_id, [
+                'action' => config('enums.book_action.CHECKOUT')
+            ]);
+            $book->status = Book::STATUS['CHECKED_OUT'];
+            $book->update();
+        });
 
         return response()->json([
             'data' => [],
@@ -160,12 +163,14 @@ class BookController extends Controller
             ]);
         }
 
-        $user_id = Auth::user()->getAuthIdentifier();
-        $book->users()->attach($user_id, [
-            'action' => config('enums.book_action.CHECKIN')
-        ]);
-        $book->status = Book::STATUS['AVAILABLE'];
-        $book->update();
+        DB::transaction(function () use ($book) {
+            $user_id = 1;//Auth::user()->getAuthIdentifier();
+            $book->users()->attach($user_id, [
+                'action' => config('enums.book_action.CHECKIN')
+            ]);
+            $book->status = Book::STATUS['AVAILABLE'];
+            $book->update();
+        });
 
         return response()->json([
             'data' => [],

@@ -17,10 +17,10 @@ class BookController extends Controller
      */
     public function __construct()
     {
-//        $this->middleware('auth:api')->except([
-//            'index',
-//            'show'
-//        ]);
+        $this->middleware('auth:api')->except([
+            'index',
+            'show'
+        ]);
     }
 
     /**
@@ -131,7 +131,7 @@ class BookController extends Controller
         }
 
         DB::transaction(function () use ($book) {
-            $user_id = 1;//Auth::user()->getAuthIdentifier();
+            $user_id = Auth::user()->getAuthIdentifier();
             $book->users()->attach($user_id, [
                 'action' => config('enums.book_action.CHECKOUT')
             ]);
@@ -164,7 +164,7 @@ class BookController extends Controller
         }
 
         DB::transaction(function () use ($book) {
-            $user_id = 1;//Auth::user()->getAuthIdentifier();
+            $user_id = Auth::user()->getAuthIdentifier();
             $book->users()->attach($user_id, [
                 'action' => config('enums.book_action.CHECKIN')
             ]);

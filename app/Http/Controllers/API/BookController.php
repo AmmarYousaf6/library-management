@@ -128,7 +128,7 @@ class BookController extends Controller
             ]);
         }
 
-        $user_id = 1;//Auth::user()->getAuthIdentifier();
+        $user_id = Auth::user()->getAuthIdentifier();
         $book->users()->attach($user_id, [
             'action' => config('enums.book_action.CHECKOUT')
         ]);
@@ -159,7 +159,7 @@ class BookController extends Controller
             ]);
         }
 
-        $user_id = 1;//Auth::user()->getAuthIdentifier();
+        $user_id = Auth::user()->getAuthIdentifier();
         $book->users()->attach($user_id, [
             'action' => config('enums.book_action.CHECKIN')
         ]);

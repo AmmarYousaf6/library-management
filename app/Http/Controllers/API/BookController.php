@@ -7,6 +7,7 @@ use App\Http\Requests\CreateBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BookController extends Controller
 {
@@ -15,10 +16,10 @@ class BookController extends Controller
      */
     public function __construct()
     {
-//        $this->middleware('auth:api')->except([
-//            'index',
-//            'show'
-//        ]);
+        $this->middleware('auth:api')->except([
+            'index',
+            'show'
+        ]);
     }
 
     /**

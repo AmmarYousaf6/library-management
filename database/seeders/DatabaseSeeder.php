@@ -19,24 +19,17 @@ class DatabaseSeeder extends Seeder
     {
         User::factory(10)->create();
 
-        $books = Book::factory(20)->make();
+        DB::transaction(function () {
+            $this->call(BookSeeder::class);
 
-        foreach ($books as $book) {
-            repeat:
-            try {
-                $book->save();
+            $books = (new Book)->where('status', '=', Book::STATUS['CHECKED_OUT'])->get();
 
-                if ($book->status === Book::STATUS['CHECKED_OUT']) {
-                    DB::table('user_action_logs')->insert([
-                        'book_id' => $book->id,
-                        'user_id' => (new User)->inRandomOrder()->first()->id,
-                        'action' => 'CHECKOUT',
-                    ]);
-                }
-            } catch (QueryException $e) {
-                $book = Book::factory()->make();
-                goto repeat;
+            foreach ($books as $book) {
+                $user_id = (new User)->inRandomOrder()->first()->id;
+                $book->users()->attach($user_id, [
+                    'action' => config('enums.book_action.CHECKOUT')
+                ]);
             }
-        }
+        });
     }
 }

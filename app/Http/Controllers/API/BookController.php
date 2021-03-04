@@ -6,14 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
+use App\Models\User;
+use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class BookController extends Controller
 {
     /**
+     * Instantiate a new controller instance.
      *
+     * @return void
      */
     public function __construct()
     {
@@ -26,19 +30,17 @@ class BookController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-
     public function index()
     {
-        $books = (new Book)->paginate(10);
+        $books = (new Book)->paginate(5);
 
         return response()->json([
             'data' => [
                 'book' => $books,
             ],
-            'message' => 'Success',
-            'status' => 200
+            'message' => 'Success getting books',
         ]);
     }
 
@@ -46,7 +48,7 @@ class BookController extends Controller
      * Store a newly created resource in storage.
      *
      * @param CreateBookRequest $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function store(CreateBookRequest $request)
     {
@@ -60,8 +62,7 @@ class BookController extends Controller
             'data' => [
                 'book' => $book,
             ],
-            'message' => 'Book has been saved',
-            'status' => 200,
+            'message' => 'Success adding book',
         ]);
     }
 
@@ -69,7 +70,7 @@ class BookController extends Controller
      * Display the specified resource.
      *
      * @param Book $book
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function show(Book $book)
     {
@@ -77,8 +78,7 @@ class BookController extends Controller
             'data' => [
                 'book' => $book,
             ],
-            'message' => 'Success',
-            'status' => 200
+            'message' => 'Success getting book',
         ]);
     }
 
@@ -87,22 +87,20 @@ class BookController extends Controller
      *
      * @param UpdateBookRequest $request
      * @param Book $book
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function update(UpdateBookRequest $request, Book $book)
     {
-        $book->update([
-            'title' => $request->title,
-            'isbn' => $request->isbn,
-            'published_at' => $request->published_at
-        ]);
+        $book->title = $request->title;
+        $book->isbn = $request->isbn;
+        $book->published_at = $request->published_at;
+        $book->update();
 
         return response()->json([
             'data' => [
                 'book' => $book,
             ],
-            'message' => 'Book has been updated!',
-            'status' => 200,
+            'message' => 'Success updating book',
         ]);
     }
 
@@ -110,13 +108,17 @@ class BookController extends Controller
      * Remove the specified resource from storage.
      *
      * @param Book $book
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
+     *
+     * @throws Exception
      */
     public function destroy(Book $book)
     {
         $book->delete();
+
         return response()->json([
-            'message' => 'Book has been removed'
+            'data' => [],
+            'message' => 'Success deleting book',
         ]);
     }
 
@@ -125,29 +127,24 @@ class BookController extends Controller
      *
      * @param Request $request
      * @param Book $book
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function checkout(Request $request, Book $book)
     {
         if ($request->route('book')->status === Book::STATUS['CHECKED_OUT']) {
             return response()->json([
                 'data' => [],
-                'message' => 'The book is not available'
+                'message' => 'The book is not available',
             ]);
         }
 
-        DB::transaction(function () use ($book) {
-            $user_id = Auth::user()->getAuthIdentifier();
-            $book->users()->attach($user_id, [
-                'action' => config('enums.book_action.CHECKOUT')
-            ]);
-            $book->status = Book::STATUS['CHECKED_OUT'];
-            $book->update();
-        });
+        $user = Auth::user();
+
+        Book::checkout($book, $user);
 
         return response()->json([
             'data' => [],
-            'message' => 'Success checking-out book'
+            'message' => 'Success checking-out book',
         ]);
     }
 
@@ -156,31 +153,24 @@ class BookController extends Controller
      *
      * @param Request $request
      * @param Book $book
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function checkin(Request $request, Book $book)
     {
         if ($request->route('book')->status === Book::STATUS['AVAILABLE']) {
             return response()->json([
                 'data' => [],
-                'message' => 'The book is not checked-out'
+                'message' => 'The book is not checked-out',
             ]);
         }
 
-        DB::transaction(function () use ($book) {
-            $user_id = Auth::user()->getAuthIdentifier();
-            $book->users()->attach($user_id, [
-                'action' => config('enums.book_action.CHECKIN')
-            ]);
-            $book->status = Book::STATUS['AVAILABLE'];
-            $book->update();
-        });
+        $user = Auth::user();
+
+        Book::checkin($book, $user);
 
         return response()->json([
             'data' => [],
-            'message' => 'Success checking-in book'
+            'message' => 'Success checking-in book',
         ]);
     }
-
-
 }

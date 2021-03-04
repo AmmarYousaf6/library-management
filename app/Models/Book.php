@@ -5,13 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class Book
  * @package App\Models
  *
  * @mixin Builder
+ *
  */
 class Book extends Model
 {
@@ -26,7 +28,7 @@ class Book extends Model
         'title',
         'isbn',
         'published_at',
-        'status'
+        'status',
     ];
 
     /**
@@ -35,21 +37,54 @@ class Book extends Model
      * @var array
      */
     protected $casts = [
-        'published_at' => 'date'
-    ];
-    /**
-     * The possible status of Books
-     */
-    const STATUS = [
-        'CHECKED_OUT' => 'CHECKED_OUT',
-        'AVAILABLE' => 'AVAILABLE'
+        'published_at' => 'date',
     ];
 
     /**
-     * The books that belong to user
+     * The possible status a book can have.
+     */
+    const STATUS = [
+        'AVAILABLE' => 'AVAILABLE',
+        'CHECKED_OUT' => 'CHECKED_OUT',
+    ];
+
+    /**
+     * The users that belong to the book.
      */
     public function users()
     {
-        return $this->belongsToMany(User::class, 'user_action_logs')->withPivot('action');
+        return $this->belongsToMany(User::class, 'user_action_logs')->withPivot(['id', 'action', 'created_at']);
+    }
+
+    /**
+     * Checkout the specific resource from the storage
+     * @param Book $book
+     * @param User $user
+     */
+    public static function checkout(Book $book, User $user)
+    {
+        DB::transaction(function () use ($book, $user) {
+            $book->users()->attach($user->id, [
+                'action' => config('enums.book_action.CHECKOUT')
+            ]);
+            $book->status = Book::STATUS['CHECKED_OUT'];
+            $book->update();
+        });
+    }
+
+    /**
+     * Checkin the specific resource into the storage
+     * @param Book $book
+     * @param User $user
+     */
+    public static function checkin(Book $book, User $user)
+    {
+        DB::transaction(function () use ($book, $user) {
+            $book->users()->attach($user->id, [
+                'action' => config('enums.book_action.CHECKIN')
+            ]);
+            $book->status = Book::STATUS['AVAILABLE'];
+            $book->update();
+        });
     }
 }

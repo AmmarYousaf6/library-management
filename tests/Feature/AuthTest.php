@@ -49,13 +49,11 @@ class AuthTest extends TestCase
 
     public function testSuccessfulRegistration()
     {
-        RefreshDatabase::class;
-
         $userData = [
             'name' => 'John Doe',
             'email' => 'doe@example.com',
-            'password' => 'demo12345',
-            'password_confirmation' => 'demo12345',
+            'password' => 'Demo12345',
+            'password_confirmation' => 'Demo12345',
             'date_of_birth' => '1970-01-01',
         ];
 

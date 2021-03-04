@@ -1,7 +1,8 @@
 <?php
 
+use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BookController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\API\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,10 +16,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::post('/register', [AuthController::class, 'register'])->name('users.register');
+Route::post('/login', [AuthController::class, 'login'])->name('users.login');
+Route::post('/logout', [AuthController::class, 'logout'])->name('users.logout');
+Route::post('/logout_all', [AuthController::class, 'logout_all'])->name('users.logout_all');
 
+Route::get('/user', [UserController::class, 'show'])->name('users.show');
 Route::apiResource('books', BookController::class);
 Route::post('books/{book}/checkout', [BookController::class, 'checkout'])->name('books.checkout');
 Route::post('books/{book}/checkin', [BookController::class, 'checkin'])->name('books.checkin');

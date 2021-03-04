@@ -17,7 +17,7 @@ class BookController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api')->except([
+        $this->middleware('auth:sanctum')->except([
             'index',
             'show'
         ]);
@@ -34,7 +34,9 @@ class BookController extends Controller
         $books = (new Book)->paginate(10);
 
         return response()->json([
-            'data' => $books,
+            'data' => [
+                'book' => $books,
+            ],
             'message' => 'Success',
             'status' => 200
         ]);
@@ -55,7 +57,9 @@ class BookController extends Controller
         $book->save();
 
         return response()->json([
-            'data' => $book,
+            'data' => [
+                'book' => $book,
+            ],
             'message' => 'Book has been saved',
             'status' => 200,
         ]);
@@ -70,7 +74,9 @@ class BookController extends Controller
     public function show(Book $book)
     {
         return response()->json([
-            'data' => $book,
+            'data' => [
+                'book' => $book,
+            ],
             'message' => 'Success',
             'status' => 200
         ]);
@@ -92,7 +98,9 @@ class BookController extends Controller
         ]);
 
         return response()->json([
-            'data' => $book,
+            'data' => [
+                'book' => $book,
+            ],
             'message' => 'Book has been updated!',
             'status' => 200,
         ]);
@@ -108,8 +116,7 @@ class BookController extends Controller
     {
         $book->delete();
         return response()->json([
-            'message' => 'Book has been removed',
-            'status' => 200
+            'message' => 'Book has been removed'
         ]);
     }
 
@@ -125,8 +132,7 @@ class BookController extends Controller
         if ($request->route('book')->status === Book::STATUS['CHECKED_OUT']) {
             return response()->json([
                 'data' => [],
-                'message' => 'The book is not available.',
-                'code' => 200,
+                'message' => 'The book is not available'
             ]);
         }
 
@@ -141,8 +147,7 @@ class BookController extends Controller
 
         return response()->json([
             'data' => [],
-            'message' => 'Success checking-out book',
-            'code' => 200,
+            'message' => 'Success checking-out book'
         ]);
     }
 
@@ -158,8 +163,7 @@ class BookController extends Controller
         if ($request->route('book')->status === Book::STATUS['AVAILABLE']) {
             return response()->json([
                 'data' => [],
-                'message' => 'The book is not checked-out.',
-                'code' => 200,
+                'message' => 'The book is not checked-out'
             ]);
         }
 
@@ -174,8 +178,7 @@ class BookController extends Controller
 
         return response()->json([
             'data' => [],
-            'message' => 'Success checking-in book',
-            'code' => 200,
+            'message' => 'Success checking-in book'
         ]);
     }
 
